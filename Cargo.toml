@@ -1,0 +1,31 @@
+[workspace]
+resolver = "2"
+members = ["crates/core", "crates/cli", "app/src-tauri"]
+
+[workspace.package]
+version = "0.2.0"
+edition = "2021"
+license = "MIT"
+
+[workspace.dependencies]
+linuxsign-core = { path = "crates/core" }
+anyhow = "1"
+thiserror = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+base64 = "0.22"
+chrono = { version = "0.4", features = ["serde"] }
+
+[profile.release]
+lto = true
+codegen-units = 1
+strip = true
+opt-level = 3
+
+# Bỏ thông tin debug khi build dev: nhỏ hơn nhiều lần, build nhanh hơn
+[profile.dev]
+debug = false
+incremental = false
+
+[profile.dev.package."*"]
+debug = false

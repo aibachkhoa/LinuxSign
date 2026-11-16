@@ -1,0 +1,14 @@
+[req]
+distinguished_name=dn
+prompt=no
+string_mask=utf8only
+utf8=yes
+[dn]
+C=VN
+ST=Hà Nội
+O=CÔNG TY TNHH THỬ NGHIỆM
+CN=CÔNG TY TNHH THỬ NGHIỆM
+UID=MST:0101234567
+[ext]
+basicConstraints=critical,CA:FALSE
+keyUsage=critical,digitalSignature,nonRepudiation

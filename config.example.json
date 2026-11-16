@@ -1,0 +1,25 @@
+{
+  "extra_modules": [
+    "/opt/vendor/lib/libpkcs11.so"
+  ],
+  "extra_search_dirs": [
+    "~/drivers/token"
+  ],
+  "exclude_modules": [
+    "*broken-driver*.so"
+  ],
+  "module_priority": {
+    "opensc-pkcs11.so": 30
+  },
+  "agent_enabled": false,
+  "agent_port": 18080,
+  "agent_allowed_origins": [
+    "https://app.congty.vn"
+  ],
+  "expiry_warn_days": 30,
+  "tsa_url": "http://timestamp.digicert.com",
+  "default_reason": "Phê duyệt",
+  "default_location": "Hà Nội",
+  "signature_font": null,
+  "run_in_background": true
+}

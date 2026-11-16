@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>LinuxSign</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <aside class="sidebar">
+    <div class="brand">
+      <svg viewBox="0 0 512 512" aria-hidden="true"><rect x="16" y="16" width="480" height="480" rx="108" fill="currentColor"/><rect x="150" y="86" width="212" height="300" rx="34" fill="#e8f5ef"/><rect x="200" y="54" width="112" height="60" rx="14" fill="#9fd8c0"/><circle cx="356" cy="370" r="74" fill="#f5b83d"/><path d="M322 372l24 24 46-50" stroke="#0f6b4f" stroke-width="20" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <div><b>LinuxSign</b><small>Quản lý chữ ký số</small></div>
+    </div>
+    <nav>
+      <button data-page="overview" class="active"><i data-icon="grid"></i>Tổng quan</button>
+      <button data-page="sign"><i data-icon="pen"></i>Ký số</button>
+      <button data-page="doctor"><i data-icon="pulse"></i>Chẩn đoán</button>
+      <button data-page="guide"><i data-icon="book"></i>Hướng dẫn</button>
+      <button data-page="settings"><i data-icon="gear"></i>Cài đặt</button>
+    </nav>
+    <div class="sidebar-foot">
+      <div id="agent-pill" class="pill muted" title="Signing agent cho ứng dụng web">Agent: tắt</div>
+      <div id="scan-time" class="muted small">Đang quét…</div>
+    </div>
+  </aside>
+
+  <main>
+    <!-- ======================= TỔNG QUAN ======================= -->
+    <section id="page-overview" class="page active">
+      <header class="page-head">
+        <div><h1>Tổng quan</h1><p class="muted">Token đang cắm và hạn sử dụng chứng thư số</p></div>
+        <button id="btn-rescan" class="btn ghost"><i data-icon="refresh"></i>Quét lại</button>
+      </header>
+      <div id="stats" class="stats"></div>
+      <div id="tokens"></div>
+    </section>
+
+    <!-- ======================= KÝ SỐ ======================= -->
+    <section id="page-sign" class="page">
+      <header class="page-head">
+        <div><h1>Ký số</h1><p class="muted">Ký PDF (PAdES), XML hóa đơn điện tử / tờ khai (XMLDSig, XAdES) hoặc file bất kỳ (.p7s)</p></div>
+        <div class="seg" id="sign-mode">
+          <button data-mode="pdf" class="active">Tài liệu PDF</button>
+          <button data-mode="xml">XML / Hóa đơn</button>
+          <button data-mode="file">File bất kỳ</button>
+        </div>
+      </header>
+      <div class="sign-grid">
+        <div class="card form">
+          <label class="step"><span>1</span>Chọn file cần ký</label>
+          <div class="file-pick">
+            <button id="pick-input" class="btn"><i data-icon="file"></i>Chọn file…</button>
+            <div id="input-path" class="path muted">Chưa chọn file</div>
+          </div>
+
+          <label class="step"><span>2</span>Chọn chứng thư số</label>
+          <select id="cert-select"></select>
+          <div id="cert-hint" class="hint"></div>
+
+          <div id="pdf-opts">
+            <label class="step"><span>3</span>Thông tin chữ ký</label>
+            <div class="row2">
+              <label>Lý do ký<input id="reason" placeholder="Ví dụ: Phê duyệt hợp đồng" /></label>
+              <label>Nơi ký<input id="location" placeholder="Ví dụ: Hà Nội" /></label>
+            </div>
+            <label class="check"><input type="checkbox" id="visible" checked />Hiển thị khung chữ ký trên trang</label>
+            <div id="visible-opts" class="row2">
+              <label>Trang<select id="page-select"><option value="1">1</option></select></label>
+              <label>Vị trí
+                <select id="pos-select">
+                  <option value="br">Góc dưới bên phải</option>
+                  <option value="bl">Góc dưới bên trái</option>
+                  <option value="tr">Góc trên bên phải</option>
+                  <option value="tl">Góc trên bên trái</option>
+                </select>
+              </label>
+            </div>
+          </div>
+          <div id="xml-opts" hidden>
+            <label class="step"><span>3</span>Loại chữ ký XML</label>
+            <label>Hồ sơ
+              <select id="xml-profile">
+                <option value="einvoice">Hóa đơn điện tử: ký DLHDon, đặt chữ ký trong DSCKS/NBan</option>
+                <option value="enveloped">Tờ khai / văn bản XML: XMLDSig enveloped</option>
+                <option value="xades">XAdES-BES (chữ ký điện tử nâng cao)</option>
+              </select>
+            </label>
+            <details class="adv"><summary>Tùy chỉnh nâng cao</summary>
+              <div class="row2">
+                <label>Id phần tử cần ký<input id="xml-ref" placeholder="Tự động" /></label>
+                <label>Vị trí đặt chữ ký<input id="xml-parent" placeholder="Tự động" /></label>
+              </div>
+              <p class="hint">Id: giá trị thuộc tính Id của phần tử được ký (ví dụ <code>data</code>); để trống = cả văn bản (hóa đơn: tự dò DLHDon).
+              Vị trí: đường dẫn từ phần tử gốc, ví dụ <code>DSCKS/NBan</code> hoặc <code>CKyDTu</code>; phần tử chưa có sẽ được tạo.</p>
+            </details>
+          </div>
+          <div id="file-opts" hidden>
+            <label class="step"><span>3</span>Tùy chọn</label>
+            <label class="check"><input type="checkbox" id="attached" />Nhúng nội dung gốc vào file chữ ký (attached)</label>
+            <p class="hint">Mặc định tạo file <code>.p7s</code> tách rời, gửi kèm file gốc.</p>
+          </div>
+          <label class="check"><input type="checkbox" id="use-tsa" />Gắn dấu thời gian (TSA)</label>
+          <div id="tsa-hint" class="hint"></div>
+
+          <label class="step"><span>4</span>Lưu thành</label>
+          <div class="file-pick">
+            <button id="pick-output" class="btn ghost">Đổi…</button>
+            <div id="output-path" class="path muted">—</div>
+          </div>
+          <button id="btn-sign" class="btn primary big" disabled><i data-icon="pen"></i>Ký số</button>
+        </div>
+
+        <div class="card preview-card">
+          <h3>Xem trước vị trí</h3>
+          <div id="page-preview" class="page-preview"><div id="sig-box" class="sig-box">Chữ ký số</div></div>
+          <p class="hint" id="preview-hint">Khung chữ ký sẽ hiển thị tên người ký, ngày ký, lý do và nơi ký.</p>
+          <div id="sign-result"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================= CHẨN ĐOÁN ======================= -->
+    <section id="page-doctor" class="page">
+      <header class="page-head">
+        <div><h1>Chẩn đoán</h1><p class="muted">Kiểm tra dịch vụ smart card, thiết bị USB, driver và token</p></div>
+        <button id="btn-doctor" class="btn primary"><i data-icon="pulse"></i>Chạy chẩn đoán</button>
+      </header>
+      <div id="doctor-out"><div class="empty"><p>Bấm <b>Chạy chẩn đoán</b> để kiểm tra hệ thống.</p></div></div>
+    </section>
+
+    <!-- ======================= HƯỚNG DẪN ======================= -->
+    <section id="page-guide" class="page">
+      <header class="page-head"><div><h1>Hướng dẫn sử dụng</h1><p class="muted">Cài đặt, ký số, kiểm tra và gia hạn chữ ký số</p></div></header>
+      <div class="guide" id="guide"></div>
+    </section>
+
+    <!-- ======================= CÀI ĐẶT ======================= -->
+    <section id="page-settings" class="page">
+      <header class="page-head">
+        <div><h1>Cài đặt</h1><p class="muted">Lưu tại <code id="cfg-path">~/.config/linuxsign/config.json</code></p></div>
+        <button id="btn-save" class="btn primary">Lưu cài đặt</button>
+      </header>
+
+      <h2 class="group">Theo dõi hạn sử dụng</h2>
+      <div class="setting">
+        <i data-icon="cal"></i>
+        <div><b>Cảnh báo trước khi hết hạn</b><span>Số ngày trước ngày hết hạn để hiện cảnh báo và gửi thông báo</span></div>
+        <input id="s-warn" class="narrow" type="number" min="1" max="365" />
+      </div>
+
+      <h2 class="group">Ký PDF</h2>
+      <div class="setting">
+        <i data-icon="pen"></i>
+        <div><b>Lý do ký mặc định</b><span>Điền sẵn khi ký tài liệu PDF</span></div>
+        <input id="s-reason" class="wide" />
+      </div>
+      <div class="setting">
+        <i data-icon="pin"></i>
+        <div><b>Nơi ký mặc định</b><span>Ví dụ: Hà Nội, TP. Hồ Chí Minh</span></div>
+        <input id="s-location" class="wide" />
+      </div>
+      <div class="setting">
+        <i data-icon="clock"></i>
+        <div><b>Máy chủ dấu thời gian (TSA)</b><span>Chứng minh thời điểm ký, giúp chữ ký vẫn kiểm chứng được sau khi chứng thư hết hạn</span></div>
+        <input id="s-tsa" class="wide" list="tsa-list" placeholder="http://timestamp.digicert.com" />
+        <datalist id="tsa-list"><option value="http://timestamp.digicert.com"><option value="http://timestamp.sectigo.com"></datalist>
+      </div>
+      <div class="setting">
+        <i data-icon="font"></i>
+        <div><b>Font khung chữ ký</b><span>Mặc định Noto Sans (đủ dấu tiếng Việt). Có thể chọn file .ttf khác, ví dụ Times New Roman.</span></div>
+        <div class="inline"><input id="s-font" class="wide" placeholder="Noto Sans (mặc định)" /><button id="pick-font" class="btn">Chọn…</button></div>
+      </div>
+
+      <h2 class="group">Chạy nền</h2>
+      <div class="setting">
+        <i data-icon="tray"></i>
+        <div><b>Thu nhỏ xuống khay hệ thống khi đóng cửa sổ</b><span>Tiếp tục theo dõi token, hạn chứng thư và chạy agent ở nền. Thoát hẳn bằng menu ở khay.</span></div>
+        <label class="switch"><span class="switch-text">Tắt</span><input type="checkbox" class="toggle" id="s-bg" /></label>
+      </div>
+      <div class="setting">
+        <i data-icon="power"></i>
+        <div><b>Khởi động cùng hệ thống</b><span>Tự chạy ẩn ở khay khi đăng nhập máy (có hiệu lực ngay)</span></div>
+        <label class="switch"><span class="switch-text">Tắt</span><input type="checkbox" class="toggle" id="s-autostart" /></label>
+      </div>
+
+      <h2 class="group">Agent cho ứng dụng web</h2>
+      <div class="setting">
+        <i data-icon="globe"></i>
+        <div><b>Signing agent</b><span id="agent-detail">Cho phép website ký số qua http://127.0.0.1</span></div>
+        <label class="switch"><span class="switch-text">Tắt</span><input type="checkbox" class="toggle" id="s-agent" /></label>
+      </div>
+      <div class="setting">
+        <i data-icon="plug"></i>
+        <div><b>Cổng</b><span>Mặc định 18080</span></div>
+        <input id="s-port" class="narrow" type="number" min="1024" max="65535" />
+      </div>
+      <div class="setting stack">
+        <i data-icon="shield"></i>
+        <div><b>Website được phép gọi</b><span>Mỗi dòng một địa chỉ, ví dụ https://app.congty.vn</span></div>
+        <textarea id="s-origins" rows="3" placeholder="https://app.congty.vn"></textarea>
+      </div>
+
+      <h2 class="group">Driver nâng cao</h2>
+      <div class="setting stack">
+        <i data-icon="usb"></i>
+        <div><b>Driver PKCS#11 bổ sung</b><span>Đường dẫn file .so / .dll của driver nằm ở vị trí đặc biệt, mỗi dòng một file</span></div>
+        <textarea id="s-modules" rows="2" placeholder="/opt/vendor/lib/libpkcs11.so"></textarea>
+      </div>
+      <div class="setting stack">
+        <i data-icon="folder"></i>
+        <div><b>Thư mục quét thêm</b><span>Thư mục cài driver của nhà cung cấp, mỗi dòng một thư mục</span></div>
+        <textarea id="s-dirs" rows="2"></textarea>
+      </div>
+      <div class="setting stack">
+        <i data-icon="block"></i>
+        <div><b>Bỏ qua driver</b><span>Mẫu tên driver lỗi cần bỏ qua, ví dụ *broken*.so</span></div>
+        <textarea id="s-exclude" rows="2" placeholder="*broken*.so"></textarea>
+      </div>
+    </section>
+  </main>
+
+  <!-- Hộp nhập PIN -->
+  <dialog id="pin-dialog">
+    <form method="dialog" id="pin-form">
+      <div class="dialog-body">
+      <h3>Nhập mã PIN</h3>
+      <p id="pin-token" class="muted"></p>
+      <div id="pin-warn" class="alert warn" hidden></div>
+      <input id="pin-input" type="password" autocomplete="off" inputmode="numeric" placeholder="Mã PIN của USB Token" />
+      <div id="pin-error" class="alert danger" hidden></div>
+      </div>
+      <div class="dialog-actions">
+        <button value="cancel" class="btn ghost" formnovalidate>Hủy</button>
+        <button id="pin-ok" value="ok" class="btn primary">Ký</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Chi tiết chứng thư -->
+  <dialog id="detail-dialog"><div id="detail-body" class="dialog-body"></div><div class="dialog-actions"><button class="btn" data-close>Đóng</button></div></dialog>
+
+  <div id="toasts"></div>
+  <script src="app.js"></script>
+</body>
+</html>
